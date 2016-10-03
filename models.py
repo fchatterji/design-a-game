@@ -38,7 +38,7 @@ class Game(ndb.Model):
     attempts_remaining = ndb.IntegerProperty(required=True, default=9)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
-
+    history = ndb.StringProperty(repeated=True)
 
     @classmethod
     def new_game(cls, user, attempts):
@@ -63,7 +63,15 @@ class Game(ndb.Model):
         form.attempts_remaining = self.attempts_remaining
         form.guessed_word = self.guessed_word
         form.game_over = self.game_over
+        form.history = self.history
         form.message = message
+        return form
+
+    def to_history_form(self):
+        """Return a GameForm representation of the Game"""
+        form = GameHistoryForm()
+        form.urlsafe_key = self.key.urlsafe()
+        form.history = self.history
         return form
 
     def end_game(self, won=False):
@@ -113,6 +121,7 @@ class GameForm(messages.Message):
     message = messages.StringField(4, required=True)
     user_name = messages.StringField(5, required=True)
     guessed_word = messages.StringField(6, required=True)
+    history = messages.StringField(7, repeated=True)
 
 
 class GameForms(messages.Message):
@@ -161,3 +170,9 @@ class UserForm(messages.Message):
 class UserForms(messages.Message):
     """Return multiple User Forms """
     items = messages.MessageField(UserForm, 1, repeated=True)
+
+
+class GameHistoryForm(messages.Message):
+    """GameForm for outbound game state information"""
+    urlsafe_key = messages.StringField(1, required=True)
+    history = messages.StringField(2, repeated=True)
