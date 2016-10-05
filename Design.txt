@@ -1,0 +1,39 @@
+- What additionnal properties did you add to your models and why?
+
+User model: i simply added the wins, games played and win ratio properties, to meet 
+requirements.
+
+Game model: i added an intermediate "guessed word" property, representing the hidden secret 
+word with letters that the user has found. This makes the game flow easier to program. I also 
+added the game over and the history properties, to meet requirements. The history is
+represented as a list of strings.
+
+Score model: i added the score calculation logic. 
+
+
+- What were some of the trade-offs or struggles you faced when implementing the new game 
+logic?
+
+In the current format, if you want to change a part of the models, you have to change the model,
+the "to_form" method of the model and the form itself. I find this to be inefficient and 
+wanted to find a way to automatically create a form from a model, only specifiying the fields
+to add, but did not find the time to implement that. 
+
+I hesitated on where to put the "business logic", ie the rules and flow of the game. In
+the models or in the API? As it is, the flow of the game and validation of user input is in the
+api.py file, while the calculations (score, win ratio, word choice) are in the model. 
+Maybe a separate "validation module" would have been better.
+
+I ended up testing the API manually, which quickly became quite cumbersome. An automated 
+testing of the API, even at a relatively small scale like this project, would have helped a 
+lot, but i realized this too late in the project. I feel like notions of testing should be 
+included in the lessons.
+
+The google cloud environment took some getting used to. The tools are quite different, 
+protorpc instead of json, cloud endpoints methods, query syntax, non relational databse... 
+It all works, but i feel that at this project's scale it doesn't add much compared to 
+existing frameworks like django or angular. It would probably help a lot on bigger projects
+though.
+
+
+

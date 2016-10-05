@@ -31,6 +31,7 @@ class User(ndb.Model):
         form.win_ratio = self.win_ratio
         return form
 
+
 class Game(ndb.Model):
     """Game object"""
     word = ndb.StringProperty(required=True)
@@ -43,7 +44,9 @@ class Game(ndb.Model):
     @classmethod
     def new_game(cls, user, attempts):
         """Creates and returns a new game"""
-        words = ['aab', 'bbd', 'f']
+
+        # Sample word choice
+        words = ['cat', 'dog', 'duck', 'hen', 'horse', 'Supercalifragilisticexpialidocious']
         word = random.choice(words)
 
         guessed_word = '*' * len(word)
