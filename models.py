@@ -1,6 +1,9 @@
-"""models.py - This file contains the class definitions for the Datastore
+"""models.py.
+
+This file contains the class definitions for the Datastore
 entities used by the Game. Because these classes are also regular Python
-classes they can include methods (such as 'to_form' and 'new_game')."""
+classes they can include methods (such as 'to_form' and 'new_game').
+"""
 
 import random
 from datetime import date
@@ -9,7 +12,8 @@ from google.appengine.ext import ndb
 
 
 class User(ndb.Model):
-    """User profile"""
+    """User profile."""
+
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
     games_played = ndb.IntegerProperty(default=0)
@@ -17,12 +21,14 @@ class User(ndb.Model):
 
     @property
     def win_ratio(self):
+        """Calculate the win ratio of a user."""
         if self.games_played > 0:
             return float(self.wins) / float(self.games_played)
         else:
             return float(0)
 
     def to_form(self):
+        """Convert the user model to a user form."""
         form = UserForm()
         form.name = self.name
         form.email = self.email
@@ -33,7 +39,8 @@ class User(ndb.Model):
 
 
 class Game(ndb.Model):
-    """Game object"""
+    """Game object."""
+
     word = ndb.StringProperty(required=True)
     guessed_word = ndb.StringProperty(required=True)
     attempts_remaining = ndb.IntegerProperty(required=True, default=9)
@@ -43,10 +50,9 @@ class Game(ndb.Model):
 
     @classmethod
     def new_game(cls, user, attempts):
-        """Creates and returns a new game"""
-
-        # Sample word choice
-        words = ['cat', 'dog', 'duck', 'hen', 'horse', 'Supercalifragilisticexpialidocious']
+        """Create and return a new game."""
+        words = ['cat', 'dog', 'duck', 'hen', 'horse',
+                 'Supercalifragilisticexpialidocious']
         word = random.choice(words)
 
         guessed_word = '*' * len(word)
@@ -59,7 +65,7 @@ class Game(ndb.Model):
         return game
 
     def to_form(self, message=""):
-        """Return a GameForm representation of the Game"""
+        """Return a form representation of the Game."""
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
         form.user_name = self.user.get().name
@@ -71,7 +77,7 @@ class Game(ndb.Model):
         return form
 
     def to_history_form(self):
-        """Return a GameForm representation of the Game"""
+        """Return a form representation of the history of the game."""
         form = GameHistoryForm()
         form.urlsafe_key = self.key.urlsafe()
         form.history = self.history
@@ -106,18 +112,21 @@ class Game(ndb.Model):
 
 class Score(ndb.Model):
     """Score object."""
+
     user = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True)
     won = ndb.BooleanProperty(required=True)
     score = ndb.IntegerProperty(required=True, default=0)
 
     def to_form(self):
+        """Return a form representation of the score."""
         return ScoreForm(user_name=self.user.get().name, won=self.won,
                          date=str(self.date), score=self.score)
 
 
 class GameForm(messages.Message):
-    """GameForm for outbound game state information"""
+    """GameForm for outbound game state information."""
+
     urlsafe_key = messages.StringField(1, required=True)
     attempts_remaining = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
@@ -128,23 +137,27 @@ class GameForm(messages.Message):
 
 
 class GameForms(messages.Message):
-    """Return multiple GameForms"""
+    """Return multiple GameForms."""
+
     items = messages.MessageField(GameForm, 1, repeated=True)
 
 
 class NewGameForm(messages.Message):
-    """Used to create a new game"""
+    """Form to create a new game."""
+
     user_name = messages.StringField(1, required=True)
     attempts = messages.IntegerField(4, default=9)
 
 
 class MakeMoveForm(messages.Message):
-    """Used to make a move in an existing game"""
+    """Form to make a move in an existing game."""
+
     guess = messages.StringField(1, required=True)
 
 
 class ScoreForm(messages.Message):
-    """ScoreForm for outbound Score information"""
+    """ScoreForm for outbound Score information."""
+
     user_name = messages.StringField(1, required=True)
     date = messages.StringField(2, required=True)
     won = messages.BooleanField(3, required=True)
@@ -152,17 +165,20 @@ class ScoreForm(messages.Message):
 
 
 class ScoreForms(messages.Message):
-    """Return multiple ScoreForms"""
+    """Return multiple ScoreForms."""
+
     items = messages.MessageField(ScoreForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):
-    """StringMessage-- outbound (single) string message"""
+    """StringMessage-- outbound (single) string message."""
+
     message = messages.StringField(1, required=True)
 
 
 class UserForm(messages.Message):
-    """User Form"""
+    """User Form."""
+
     name = messages.StringField(1, required=True)
     email = messages.StringField(2)
     games_played = messages.IntegerField(3, default=0)
@@ -171,11 +187,13 @@ class UserForm(messages.Message):
 
 
 class UserForms(messages.Message):
-    """Return multiple User Forms """
+    """Return multiple User Forms."""
+
     items = messages.MessageField(UserForm, 1, repeated=True)
 
 
 class GameHistoryForm(messages.Message):
-    """GameForm for outbound game state information"""
+    """GameForm for outbound game history information."""
+
     urlsafe_key = messages.StringField(1, required=True)
     history = messages.StringField(2, repeated=True)
