@@ -8,7 +8,6 @@ To access the API, simply visit https://udacity-hangman.appspot.com\_ah/api/expl
 
 This project is part of the Udacity Full Stack Web Developper nano degree. It is not licensed.
 
-
 ## Setup instructions
 
 Install google app engine and create an account and a new project.
@@ -29,14 +28,21 @@ Browse the hangman API by visiting [localhost:8080/_ah/api/explorer](http://loca
 
  
 ##Game Description:
-Guess a number is a simple guessing game. Each game begins with a random 'target'
-number between the minimum and maximum values provided, and a maximum number of
-'attempts'. 'Guesses' are sent to the `make_move` endpoint which will reply
-with either: 'too low', 'too high', 'you win', or 'game over' (if the maximum
-number of attempts is reached).
-Many different Guess a Number games can be played by many different Users at any
-given time. Each game can be retrieved or played by using the path parameter
-`urlsafe_game_key`.
+
+Hangman is a simple word guessing game. At the start of the game, the computer randomly selects a word (from a very small sample subset).
+
+Each turn, the user has to guess a letter. If the letter is in the word, it is revealed. If not, the user has to guess again.
+
+If the user hasn't guessed the word in a fixed ampount of attempts(9 by default), he loses the game.
+
+Many different Hangman games can be played by many different Users at any given time. Each game can be retrieved or played by using the path parameter `urlsafe_game_key`.
+
+After each game, a score is calculated as follows:
+- 10 points for winning the game
+- 5 additionnal points per attempts remaining at the end of the game
+- 0 points if the player loses
+
+It is possible to access user rankings, previous games and high scores.
 
 ##Files Included:
  - api.py: Contains endpoints and game playing logic.
@@ -58,11 +64,10 @@ given time. Each game can be retrieved or played by using the path parameter
  - **new_game**
     - Path: 'game'
     - Method: POST
-    - Parameters: user_name, min, max, attempts
+    - Parameters: user_name, attempts
     - Returns: GameForm with initial game state.
     - Description: Creates a new Game. user_name provided must correspond to an
-    existing user - will raise a NotFoundException if not. Min must be less than
-    max. Also adds a task to a task queue to update the average moves remaining
+    existing user - will raise a NotFoundException if not. Also adds a task to a task queue to update the average moves remaining
     for active games.
      
  - **get_game**
@@ -71,6 +76,20 @@ given time. Each game can be retrieved or played by using the path parameter
     - Parameters: urlsafe_game_key
     - Returns: GameForm with current game state.
     - Description: Returns the current state of a game.
+
+ - **get_game_history**
+    - Path: 'game/history/{urlsafe_game_key}'
+    - Method: GET
+    - Parameters: urlsafe_game_key
+    - Returns: GameHistoryForm with current game history.
+    - Description: Returns the current history of a game.
+
+ - **cancel_game**
+    - Path: 'game/cancel/{urlsafe_game_key}'
+    - Method: PUT
+    - Parameters: urlsafe_game_key
+    - Returns: GameForm with current game state and cancellation status.
+    - Description: Cancels a game.
     
  - **make_move**
     - Path: 'game/{urlsafe_game_key}'
@@ -86,6 +105,13 @@ given time. Each game can be retrieved or played by using the path parameter
     - Parameters: None
     - Returns: ScoreForms.
     - Description: Returns all Scores in the database (unordered).
+
+ - **get_highscores**
+    - Path: 'highscores'
+    - Method: GET
+    - Parameters: None
+    - Returns: ScoreForms.
+    - Description: Returns all Scores in the database, ordered from highest to lowest.
     
  - **get_user_scores**
     - Path: 'scores/user/{user_name}'
@@ -93,6 +119,22 @@ given time. Each game can be retrieved or played by using the path parameter
     - Parameters: user_name
     - Returns: ScoreForms. 
     - Description: Returns all Scores recorded by the provided player (unordered).
+    Will raise a NotFoundException if the User does not exist.
+
+ - **get_user_games**
+    - Path: 'games/user/{user_name}'
+    - Method: GET
+    - Parameters: user_name
+    - Returns: GameForms. 
+    - Description: Returns all of the current user's games
+    Will raise a NotFoundException if the User does not exist.
+
+ - **get_user_rankings**
+    - Path: 'rankings'
+    - Method: GET
+    - Parameters: user_name
+    - Returns: GameForms. 
+    - Description: Returns all of the current user's games
     Will raise a NotFoundException if the User does not exist.
     
  - **get_active_game_count**
