@@ -132,10 +132,9 @@ It is possible to access user rankings, previous games and high scores.
  - **get_user_rankings**
     - Path: 'rankings'
     - Method: GET
-    - Parameters: user_name
-    - Returns: GameForms. 
-    - Description: Returns all of the current user's games
-    Will raise a NotFoundException if the User does not exist.
+    - Parameters: none
+    - Returns: UserForms. 
+    - Description: Returns users, ranked by their win/loss ratio
     
  - **get_active_game_count**
     - Path: 'games/active'
@@ -148,6 +147,7 @@ It is possible to access user rankings, previous games and high scores.
 ##Models Included:
  - **User**
     - Stores unique user_name and (optional) email address.
+    - Stores wins, number of games played, and win ratio
     
  - **Game**
     - Stores unique game states. Associated with User model via KeyProperty.
@@ -159,6 +159,10 @@ It is possible to access user rankings, previous games and high scores.
  - **GameForm**
     - Representation of a Game's state (urlsafe_key, attempts_remaining,
     game_over flag, message, user_name).
+ - **GameForms**
+    - Multiple GameForm container.
+ - **GameHistoryForm**
+    - representation of a Game's history (urlsafe_key, history).
  - **NewGameForm**
     - Used to create a new game (user_name, min, max, attempts)
  - **MakeMoveForm**
@@ -170,3 +174,7 @@ It is possible to access user rankings, previous games and high scores.
     - Multiple ScoreForm container.
  - **StringMessage**
     - General purpose String container.
+ - **UserForm**
+    - Representation of a user (name, email, games_played, wins, win_ratio).
+  - **UserForms**
+    - Multiple UserForm container.
