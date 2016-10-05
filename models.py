@@ -149,6 +149,13 @@ class NewGameForm(messages.Message):
     attempts = messages.IntegerField(4, default=9)
 
 
+class GameHistoryForm(messages.Message):
+    """GameForm for outbound game history information."""
+
+    urlsafe_key = messages.StringField(1, required=True)
+    history = messages.StringField(2, repeated=True)
+
+
 class MakeMoveForm(messages.Message):
     """Form to make a move in an existing game."""
 
@@ -190,10 +197,3 @@ class UserForms(messages.Message):
     """Return multiple User Forms."""
 
     items = messages.MessageField(UserForm, 1, repeated=True)
-
-
-class GameHistoryForm(messages.Message):
-    """GameForm for outbound game history information."""
-
-    urlsafe_key = messages.StringField(1, required=True)
-    history = messages.StringField(2, repeated=True)
