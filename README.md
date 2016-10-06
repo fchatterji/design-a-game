@@ -24,8 +24,6 @@ where DIR is the path to the application folder containing the `app.yaml` file.
 
 Browse the hangman API by visiting [localhost:8080/_ah/api/explorer](http://localhost:8080/_ah/api/explorer). 
 
-
-
  
 ##Game Description:
 
@@ -43,6 +41,16 @@ After each game, a score is calculated as follows:
 - 0 points if the player loses
 
 It is possible to access user rankings, previous games and high scores.
+
+
+##How to play the game
+
+- Create a new user, using the create_user endpoint.
+- Use create_game to create a game. Remember to copy the urlsafe_key property for later use.
+- Use the make_move endpoint to male moves.
+- Use cancel_game to cancel a game in progress. 
+- Use get_game, along with the urlsafe_key, to continue an ongoing game.
+
 
 ##Files Included:
  - api.py: Contains endpoints and game playing logic.

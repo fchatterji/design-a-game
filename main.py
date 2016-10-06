@@ -30,7 +30,7 @@ class SendReminderEmail(webapp2.RequestHandler):
 
             for game in games:
                 subject = 'This is a reminder!'
-                body = 'Hello {}, you have an unfinished game at {1}.appspot.com!'.format(user.name, app_id)
+                body = 'Hello {}, you have an unfinished game at {}.appspot.com!'.format(user.name, app_id)
                 # This will send test emails, the arguments to send_mail are:
                 # from, to, subject, body
                 mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),

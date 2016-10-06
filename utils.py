@@ -41,6 +41,3 @@ def get_by_urlsafe(urlsafe, model):
     return entity
 
 
-def find_all_indexes(word, letter):
-    """Return the indexes of all occurrences of a letter in a string."""
-    return [index for index, character in enumerate(word) if character == letter]
