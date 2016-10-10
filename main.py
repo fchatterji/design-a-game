@@ -10,8 +10,8 @@ import webapp2
 from google.appengine.api import mail, app_identity
 from api import HangmanApi
 
-from models import User, Game
-
+from user import User
+from game import Game
 
 class SendReminderEmail(webapp2.RequestHandler):
     """Request handler to send reminder emails."""

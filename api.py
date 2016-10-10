@@ -9,7 +9,6 @@ to API requests.
 import endpoints
 from protorpc import remote, messages
 from google.appengine.api import memcache, taskqueue
-import datetime
 
 from game import (
     Game,
@@ -36,8 +35,7 @@ from utils import get_by_urlsafe
 
 from game_logic import (
     find_all_indexes, 
-    calculate_score, 
-    update_user
+    end_game_and_save
 )
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(
@@ -191,16 +189,18 @@ class HangmanApi(remote.Service):
             endpoints.ForbiddenException: if the game is already finished.
         """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game and not game.game_over:
-            game.history.append("game cancelled")
-            game.put()
-            return game.to_form('You have canceled the game')
 
-        if game and game.game_over:
+        if not game:
+            raise endpoints.NotFoundException('Game not found!')
+
+        if game.game_over:
             raise endpoints.ForbiddenException('Illegal action:'
                                                'Game is already over.')
-        else:
-            raise endpoints.NotFoundException('Game not found!')
+
+        game.history.append("game cancelled")
+        game.game_over = True
+        game.put()
+        return game.to_form('You have canceled the game')
 
 
     @endpoints.method(request_message=MAKE_MOVE_REQUEST,
@@ -225,6 +225,8 @@ class HangmanApi(remote.Service):
 
         """ Input validation"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        user = game.user.get()
+        guess = request.guess.lower()
 
         if game.game_over:
             raise endpoints.ForbiddenException('Illegal action:'
@@ -240,77 +242,55 @@ class HangmanApi(remote.Service):
             raise endpoints.BadRequestException('You have already'
                                                 ' tried this letter :)')
 
-        """ Game flow"""
-        guess_is_correct = False
-        secret_word = game.secret_word
-        guessed_word = game.guessed_word
-        guess = request.guess.lower()
+        # First check if the user has guessed the whole word correctly
+        if guess == game.secret_word:
 
-        """The user guesses the whole word correctly"""
-        if guess == secret_word:
-            game.guessed_word = secret_word
-            score = calculate_score(game.attempts_remaining, True)
-            score = Score(user=game.user, date=datetime.date.today(), won=True,
-                          score=score)
-            score.put()
-
-            update_user(game.user.get(), True)
             game.history.append('Guessed {}, game won, this was'
                                 ' the secret word!'.format(guess))
-            game.game_over = True
-            game.put()
+            game.guessed_word = game.secret_word
+
+            end_game_and_save(user, game, won=True)
             return game.to_form('You win!')
 
+        # Check if the guess is correct
+        positions = find_all_indexes(game.secret_word, guess)
 
-        positions = find_all_indexes(secret_word, guess)
-
-        """ The user guesses one letter."""
+        # If the guess is correct, update the guessed word
         if positions:
             guess_is_correct = True
-
             for position in positions:
-                game.guessed_word = (guessed_word[:position] +
-                                     guess +
-                                     guessed_word[position + 1:])
+                word_list = list(game.guessed_word)
+                word_list[position] = guess
+                game.guessed_word = "".join(word_list)
 
+        # If the guess is incorrect, the user has one less attempts remaining
         else:
             guess_is_correct = False
             game.attempts_remaining -= 1
 
-        if guessed_word == secret_word:
-            score = calculate_score(game.attempts_remaining, True)
-            score = Score(user=game.user, date=datetime.date.today(), won=True,
-                          score=score)
-            score.put()
-
-            update_user(game.user.get(), True)
+        # If the user has won, end the game and save
+        if game.guessed_word == game.secret_word:
 
             game.history.append('Guessed: {}, game won. The secret'
-                                'word was {}'.format(guess, secret_word))
-            game.game_over = True
-            game.put()
+                                'word was {}'.format(guess, game.secret_word))
+            end_game_and_save(user, game, won=True)
             return game.to_form('You win!')
 
-        if game.attempts_remaining < 1:
-            score = calculate_score(game.attempts_remaining, True)
-            score = Score(user=game.user, date=datetime.date.today(), won=True,
-                          score=score)
-            score.put()
-
-            update_user(game.user.get(), True)
-
-            game.history.append('Guessed: {}, game won. The secret'
-                                'word was {}'.format(guess, secret_word))
-            game.game_over = True
-            game.put()
-            return game.to_form('No attempts remaining, you lost :(')
-        else:
+        # If the user has not won and the game is not finished, just finish the round
+        if game.attempts_remaining >= 1:
             game.history.append('Guessed: {}, which is {}. {} attempts '
                                 'remaining'.format(guess,
                                                    guess_is_correct,
                                                    game.attempts_remaining))
             game.put()
             return game.to_form('play again!')
+
+        # If the user has not won and the game is finished, end the game and save
+        else:
+            game.history.append('Guessed: {}, game lost. The secret '
+                                'word was {}'.format(guess, game.secret_word))
+            end_game_and_save(user, game, won=False)
+            return game.to_form('No attempts remaining, you lost :(')
 
 
     @endpoints.method(response_message=ScoreForms,
@@ -410,6 +390,7 @@ class HangmanApi(remote.Service):
         """
         users = User.query().fetch()
         users = sorted(users, key=lambda x: x.win_ratio, reverse=True)
+        users = sorted(users, key=lambda x: x.wins, reverse=True)
         return UserForms(items=[user.to_form() for user in users])
 
 
