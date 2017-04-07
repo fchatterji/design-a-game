@@ -2,7 +2,7 @@
 
 A backend API for the hangman game, built using Google App Engine, Google cloud endpoints, Google datastore and python 2. It allows users to play game, see rankings, scores and history of previous gamses.
 
-To access the API, simply visit https://udacity-hangman.appspot.com\_ah/api/explorer and click on hangman API.
+To access the API, simply visit https://udacity-hangman.appspot.com/_ah/api/explorer and click on hangman API.
 
 ## License information
 
